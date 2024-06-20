@@ -26,16 +26,20 @@ public class CrptApi {
     public void createDocument(Document document, String signature) {
         try {
             synchronized (this) {
-                do {
-                    long currentTime = System.currentTimeMillis();
-                    if (!timestampQueue.isEmpty()) {
-                        if ((currentTime - timestampQueue.peek() > timeUnit.toMillis(1))) {
+                if (!timestampQueue.isEmpty()) {
+                    while (timestampQueue.size() == requestLimit) {
+                        long currentTime = System.currentTimeMillis();
+                        long timePassed = currentTime - timestampQueue.peek();
+
+                        if (timePassed > timeUnit.toMillis(1)) {
                             timestampQueue.poll();
                         } else {
-                            wait(100);
+                            wait(Math.max(timeUnit.toMillis(1) - timePassed, 100));
                         }
                     }
-                } while(timestampQueue.size() == requestLimit);
+                }
+
+                timestampQueue.offer(System.currentTimeMillis());
             }
 
             ObjectMapper objectMapper = new ObjectMapper();
@@ -46,8 +50,6 @@ public class CrptApi {
                     .POST(HttpRequest.BodyPublishers.ofString(json))
                     .header("Content-Type", "application/json")
                     .build();
-
-            timestampQueue.offer(System.currentTimeMillis());
 
             HttpResponse response = HttpClient.newHttpClient()
                     .send(request, HttpResponse.BodyHandlers.ofString());
