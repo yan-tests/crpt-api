@@ -6,8 +6,8 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
 public class CrptApi {
@@ -15,7 +15,7 @@ public class CrptApi {
     private final TimeUnit timeUnit;
     private final int requestLimit;
 
-    private final Queue<Long> timestampQueue = new ConcurrentLinkedQueue<>();
+    private final Queue<Long> timestampQueue = new LinkedList<>();
 
     public CrptApi(TimeUnit timeUnit, int requestLimit) {
         this.apiUrl = "https://ismp.crpt.ru/api/v3/lk/documents/create";
